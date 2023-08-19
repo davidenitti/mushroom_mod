@@ -85,7 +85,7 @@ class PPO(Agent):
         adv = to_float_tensor(np_adv, self.policy.use_cuda)
 
         old_pol_dist = self.policy.distribution_t(obs)
-        old_log_p = old_pol_dist.log_prob(act[:,0])[:, None].detach()
+        old_log_p = old_pol_dist.log_prob(act)[:, None].detach()
 
         self._V.fit(x, v_target, **self._critic_fit_params)
 
