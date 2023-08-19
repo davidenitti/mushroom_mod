@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import blosc2
 
 cv2.ocl.setUseOpenCL(False)
 
@@ -15,13 +16,29 @@ class LazyFrames(object):
     created, the reference to each frame is used instead of a copy.
 
     """
-    def __init__(self, frames, history_length):
-        self._frames = frames
 
+    def __init__(self, frames, history_length, compress=True):
+        self._frames = frames
+        self._compress = compress
+        if self._compress:
+            for s in range(len(self._frames)):
+                if isinstance(self._frames[s], np.ndarray):
+                    self._frames[s] = (blosc2.compress(self._frames[s]), self._frames[s].shape, self._frames[s].dtype)
         assert len(self._frames) == history_length
 
     def __array__(self, dtype=None):
-        out = np.array(self._frames)
+        if isinstance(self._frames[0], tuple):
+            assert self._compress
+            for fi in self._frames:
+                assert len(fi) == 3
+            shape = self._frames[0][1]
+            frames = [np.frombuffer(blosc2.decompress(compressed_data), dtype=dtype)
+                      for compressed_data, _, dtype in self._frames]
+            for f in frames:
+                f.shape = shape
+        else:
+            frames = self._frames
+        out = np.array(frames)
         if dtype is not None:
             out = out.astype(dtype)
 

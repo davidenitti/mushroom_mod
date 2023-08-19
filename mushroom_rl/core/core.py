@@ -69,7 +69,7 @@ class Core(object):
             fit_condition = lambda: self._current_episodes_counter\
                                      >= self._n_episodes_per_fit
 
-        self._run(n_steps, n_episodes, fit_condition, render, quiet, get_env_info=False)
+        return self._run(n_steps, n_episodes, fit_condition, render, quiet, get_env_info=False)
 
     def evaluate(self, initial_states=None, n_steps=None, n_episodes=None,
                  render=False, quiet=False, get_env_info=False):
