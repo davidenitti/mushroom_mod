@@ -7,7 +7,10 @@ from mushroom_rl.core import Environment, MDPInfo
 from mushroom_rl.utils.spaces import *
 from mushroom_rl.utils.frames import LazyFrames, preprocess_frame
 
-
+def preprocess_frame2(obs, img_size):
+    image = preprocess_frame(obs, img_size)
+    size = min(img_size)
+    return image[-size:, -size:]
 class MaxAndSkip(gym.Wrapper):
     def __init__(self, env, skip, max_pooling=True):
         gym.Wrapper.__init__(self, env)
@@ -98,7 +101,7 @@ class Atari(Environment):
 
     def reset(self, state=None):
         if self._real_reset:
-            self._state = preprocess_frame(self.env.reset(), self._img_size)
+            self._state = preprocess_frame2(self.env.reset(), self._img_size)
             self._state = deque([deepcopy(
                 self._state) for _ in range(self._history_length)],
                 maxlen=self._history_length
@@ -132,7 +135,7 @@ class Atari(Environment):
             self._force_fire = self.env.unwrapped.get_action_meanings()[
                 1] == 'FIRE'
 
-        self._state.append(preprocess_frame(obs, self._img_size))
+        self._state.append(preprocess_frame2(obs, self._img_size))
 
         return LazyFrames(list(self._state),
                           self._history_length), reward, absorbing, info
